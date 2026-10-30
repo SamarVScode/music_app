@@ -385,7 +385,7 @@ fun Modifier.liquidGlass(
     if (!isGlassAllowed()) return this
     val backdrop = LocalAppBackdrop.current
     val density = LocalDensity.current
-    val resolutionScale = backdropScale.coerceIn(0.25f, 1f)
+    val resolutionScale = if (backdrop is SharedLiquidBackdropState) 1f else backdropScale.coerceIn(0.05f, 1f)
     // Pixel-sized effect parameters operate on the backdrop layer at its recorded
     // resolution, so they are pre-multiplied by the resolution scale to keep the
     // same visual size.

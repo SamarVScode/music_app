@@ -3,6 +3,7 @@ package org.oxycblt.auxio.ui.ios
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -48,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.oxycblt.auxio.R
 import org.oxycblt.auxio.music.MusicViewModel
 import org.oxycblt.auxio.music.resolve
@@ -287,32 +289,57 @@ fun SongFloatingContextMenu(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        try {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                val pi = MediaStore.createDeleteRequest(context.contentResolver, listOf(song.uri))
-                                deleteLauncher.launch(IntentSenderRequest.Builder(pi.intentSender).build())
-                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                try {
-                                    context.contentResolver.delete(song.uri, null, null)
-                                    musicViewModel.rescan()
-                                } catch (e: RecoverableSecurityException) {
-                                    val pi = e.userAction.actionIntent
-                                    deleteLauncher.launch(IntentSenderRequest.Builder(pi.intentSender).build())
+                        coroutineScope.launch(Dispatchers.IO) {
+                            var deleted = false
+                            try {
+                                if (DocumentsContract.isDocumentUri(context, song.uri) || song.uri.authority == "com.android.externalstorage.documents") {
+                                    deleted = DocumentsContract.deleteDocument(context.contentResolver, song.uri)
                                 }
-                            } else {
-                                context.contentResolver.delete(song.uri, null, null)
-                                musicViewModel.rescan()
-                            }
-                        } catch (e: Exception) {
-                            coroutineScope.launch(Dispatchers.IO) {
+                            } catch (_: Exception) {}
+
+                            if (!deleted) {
                                 try {
-                                    File(song.path.toString()).delete()
+                                    val file = File(song.path.toString())
+                                    if (file.exists()) deleted = file.delete()
                                 } catch (_: Exception) {}
-                                musicViewModel.rescan()
+                            }
+
+                            if (!deleted) {
+                                try {
+                                    val rows = context.contentResolver.delete(song.uri, null, null)
+                                    if (rows > 0) deleted = true
+                                } catch (_: Exception) {}
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                if (!deleted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && song.uri.toString().contains("media")) {
+                                    try {
+                                        val pi = MediaStore.createDeleteRequest(context.contentResolver, listOf(song.uri))
+                                        deleteLauncher.launch(IntentSenderRequest.Builder(pi.intentSender).build())
+                                    } catch (_: Exception) {
+                                        musicViewModel.rescan()
+                                        showDeleteConfirmation = false
+                                        onDismiss()
+                                    }
+                                } else if (!deleted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && song.uri.toString().contains("media")) {
+                                    try {
+                                        context.contentResolver.delete(song.uri, null, null)
+                                        musicViewModel.rescan()
+                                    } catch (e: RecoverableSecurityException) {
+                                        val pi = e.userAction.actionIntent
+                                        deleteLauncher.launch(IntentSenderRequest.Builder(pi.intentSender).build())
+                                    } catch (_: Exception) {
+                                        musicViewModel.rescan()
+                                    }
+                                    showDeleteConfirmation = false
+                                    onDismiss()
+                                } else {
+                                    musicViewModel.rescan()
+                                    showDeleteConfirmation = false
+                                    onDismiss()
+                                }
                             }
                         }
-                        showDeleteConfirmation = false
-                        onDismiss()
                     }
                 ) {
                     Text("Delete", color = Color(0xFFFF453A), fontWeight = FontWeight.SemiBold)

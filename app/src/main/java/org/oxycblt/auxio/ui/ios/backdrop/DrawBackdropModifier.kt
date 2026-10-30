@@ -419,7 +419,7 @@ private class DrawBackdropNode(
     private val recordBackdropBlock: (DrawScope.() -> Unit) = {
         val canvas = drawContext.canvas
         val padding = padding
-        val scale = backdropScale.coerceIn(0.25f, 1f)
+        val scale = if (backdrop is org.oxycblt.auxio.ui.ios.SharedLiquidBackdropState) 1f else backdropScale
 
         if (padding != 0f) {
             canvas.translate(padding, padding)
@@ -507,7 +507,7 @@ private class DrawBackdropNode(
         val layer = graphicsLayer
         if (layer != null) {
             val padding = padding
-            val scale = backdropScale.coerceIn(0.25f, 1f)
+            val scale = if (backdrop is org.oxycblt.auxio.ui.ios.SharedLiquidBackdropState) 1f else backdropScale
             val recordSize = IntSize(
                 ((size.width * scale).toInt() + padding.toInt() * 2).coerceAtLeast(1),
                 ((size.height * scale).toInt() + padding.toInt() * 2).coerceAtLeast(1)

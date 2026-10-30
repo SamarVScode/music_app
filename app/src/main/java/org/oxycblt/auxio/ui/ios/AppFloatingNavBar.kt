@@ -438,6 +438,7 @@ private fun NavPill(
     val coroutineScope = rememberCoroutineScope()
     val tabsCount = tabs.size.coerceAtLeast(1)
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
+    val parentFrozen = LocalTabBarBackdropFrozen.current
 
     BoxWithConstraints(
         modifier = modifier
@@ -446,7 +447,7 @@ private fun NavPill(
                 config = LocalGlassEffectConfig.current,
                 shape = ContinuousRoundedRectangle(percent = 50),
                 highlightAlpha = 0.35f,
-                frozen = LocalTabBarBackdropFrozen.current
+                frozen = parentFrozen
             ),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -571,7 +572,7 @@ private fun NavPill(
                     highlightAlpha = 0.5f,
                     washAlpha = 0.05f,
                     blurRadiusDp = 2.5f,
-                    frozen = { false }
+                    frozen = { parentFrozen.invoke() }
                 )
         )
 
