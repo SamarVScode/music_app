@@ -5,11 +5,6 @@
     <PreferenceCategory android:title="@string/set_playback">
 
         <SwitchPreferenceCompat
-            app:key="@string/set_key_headset_autoplay"
-            app:summary="@string/set_headset_autoplay_desc"
-            app:title="@string/set_headset_autoplay" />
-
-        <SwitchPreferenceCompat
             app:defaultValue="true"
             app:key="@string/set_key_rewind_prev"
             app:summary="@string/set_rewind_prev_desc"
@@ -32,7 +27,7 @@
     <PreferenceCategory android:title="@string/set_replay_gain">
 
         <org.oxycblt.auxio.settings.ui.IntListPreference
-            app:defaultValue="@integer/replay_gain_dynamic"
+            app:defaultValue="@integer/replay_gain_off"
             app:entries="@array/entries_replay_gain"
             app:entryValues="@array/values_replay_gain"
             app:key="@string/set_key_replay_gain"

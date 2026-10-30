@@ -20,7 +20,7 @@
 #define AUXIO_JBYTEARRAYREF_H
 
 #include <jni.h>
-#include <taglib/tbytevector.h>
+#include <taglib/toolkit/tbytevector.h>
 
 class JByteArrayRef {
 public:

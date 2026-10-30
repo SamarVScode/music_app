@@ -106,7 +106,7 @@ class PlaybackSettingsImpl @Inject constructor(@ApplicationContext context: Cont
         get() =
             ReplayGainMode.fromIntCode(
                 sharedPreferences.getInt(getString(R.string.set_key_replay_gain), Int.MIN_VALUE)
-            ) ?: ReplayGainMode.DYNAMIC
+            ) ?: ReplayGainMode.OFF
 
     override var replayGainPreAmp: ReplayGainPreAmp
         get() =

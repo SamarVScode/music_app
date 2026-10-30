@@ -22,8 +22,8 @@
 #include <jni.h>
 #include "JObjectRef.h"
 
-#include "taglib/tiostream.h"
-#include "taglib/tstring.h"
+#include <taglib/toolkit/tiostream.h>
+#include <taglib/toolkit/tstring.h>
 
 class JInputStream: public TagLib::IOStream {
 public:

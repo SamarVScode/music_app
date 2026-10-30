@@ -82,16 +82,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }
 
-tasks.register("assembleTaglib", Exec, {
-    def jniDir = "$projectDir/src/main/cpp"
-    def libs = new File("$jniDir/taglib/pkg")
-    if (libs.exists()) {
-        commandLine "true"
-        return
-    }
-    def ndkDir = androidComponents.sdkComponents.ndkDirectory.get().asFile
-    commandLine "sh", "-c", "$jniDir/build_taglib.sh $jniDir $ndkDir"
-})
+tasks.register("assembleTaglib") {
+    // No-op: TagLib is compiled directly by CMake from source via add_subdirectory
+}
 
 afterEvaluate {
     preDebugBuild.dependsOn assembleTaglib

@@ -17,6 +17,7 @@
  */
  
 #include "JInputStream.h"
+#include <stdexcept>
 
 #include <cmath>
 

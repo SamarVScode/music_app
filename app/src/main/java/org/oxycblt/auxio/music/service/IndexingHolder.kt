@@ -25,6 +25,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.oxycblt.auxio.BuildConfig
 import org.oxycblt.auxio.ForegroundListener
@@ -178,7 +179,9 @@ private constructor(
                     MediaStore.from(workerContext, musicSettings.mediaStoreQuery)
                 LocationMode.SAF -> SAF.from(workerContext, musicSettings.safQuery)
             }
-        trackingJob = indexScope.launch { fs.track().collect { requestIndex(true) } }
+        trackingJob = indexScope.launch {
+            fs.track().debounce(2000L).collect { requestIndex(true) }
+        }
     }
 
     private fun stopTracking() {

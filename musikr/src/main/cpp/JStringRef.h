@@ -20,7 +20,7 @@
 #define AUXIO_JSTRINGREF_H
 
 #include <jni.h>
-#include <taglib/tstring.h>
+#include <taglib/toolkit/tstring.h>
 
 class JStringRef {
 public:

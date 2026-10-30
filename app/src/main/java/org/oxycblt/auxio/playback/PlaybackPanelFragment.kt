@@ -231,21 +231,26 @@ class PlaybackPanelFragment :
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_open_equalizer) {
-            // Launch the system equalizer app, if possible.
             L.d("Launching equalizer")
-            val equalizerIntent =
-                Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
-                    // Provide audio session ID so the equalizer can show options for this app
-                    // in particular.
-                    .putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playbackModel.currentAudioSessionId)
-                    // Signal music type so that the equalizer settings are appropriate for
-                    // music playback.
-                    .putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-            try {
-                requireNotNull(equalizerLauncher) { "Equalizer panel launcher was not available" }
-                    .launch(equalizerIntent)
-            } catch (e: ActivityNotFoundException) {
-                requireContext().showToast(R.string.err_no_app)
+            val pm = requireContext().packageManager
+            val powerampIntent = pm.getLaunchIntentForPackage("com.maxmpz.equalizer")
+            if (powerampIntent != null) {
+                powerampIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                powerampIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playbackModel.currentAudioSessionId)
+                powerampIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
+                startActivity(powerampIntent)
+            } else {
+                val equalizerIntent =
+                    Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+                        .putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playbackModel.currentAudioSessionId)
+                        .putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
+                        .putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                try {
+                    requireNotNull(equalizerLauncher) { "Equalizer panel launcher was not available" }
+                        .launch(equalizerIntent)
+                } catch (e: ActivityNotFoundException) {
+                    requireContext().showToast(R.string.err_no_app)
+                }
             }
             return true
         }

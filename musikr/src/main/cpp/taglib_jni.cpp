@@ -24,14 +24,14 @@
 #include "JObjectRef.h"
 #include "util.h"
 
-#include "taglib/fileref.h"
-#include "taglib/flacfile.h"
-#include "taglib/mp4file.h"
-#include "taglib/mp4properties.h"
-#include "taglib/mpegfile.h"
-#include "taglib/opusfile.h"
-#include "taglib/vorbisfile.h"
-#include "taglib/wavfile.h"
+#include <taglib/fileref.h>
+#include <taglib/flac/flacfile.h>
+#include <taglib/mp4/mp4file.h>
+#include <taglib/mp4/mp4properties.h>
+#include <taglib/mpeg/mpegfile.h>
+#include <taglib/ogg/opus/opusfile.h>
+#include <taglib/ogg/vorbis/vorbisfile.h>
+#include <taglib/riff/wav/wavfile.h>
 
 bool parseMpeg(const std::string &name, TagLib::MPEG::File *mpegFile,
         JMetadataBuilder &jBuilder) {

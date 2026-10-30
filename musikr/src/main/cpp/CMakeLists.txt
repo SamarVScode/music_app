@@ -24,24 +24,19 @@ project("tagJNI") # becomes "libtagJNI.so"
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-set(taglib_location "${CMAKE_CURRENT_SOURCE_DIR}/taglib")
-set(taglib_pkg "${taglib_location}/pkg/${ANDROID_ABI}")
-set(taglib_lib "${taglib_pkg}/lib")
-set(taglib_include "${taglib_pkg}/include")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static taglib" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Disable testing" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
+set(BUILD_BINDINGS OFF CACHE BOOL "Disable bindings" FORCE)
+set(WITH_ZLIB OFF CACHE BOOL "Disable zlib" FORCE)
+set(WITH_APE OFF CACHE BOOL "Disable ape" FORCE)
+set(WITH_ASF OFF CACHE BOOL "Disable asf" FORCE)
+set(WITH_MOD OFF CACHE BOOL "Disable mod" FORCE)
+set(WITH_SHORTEN OFF CACHE BOOL "Disable shorten" FORCE)
+set(WITH_TRUEAUDIO OFF CACHE BOOL "Disable trueaudio" FORCE)
+set(VISIBILITY_HIDDEN ON CACHE BOOL "Hidden visibility" FORCE)
 
-set(taglib_file_name libtag.a)
-set(taglib_file_path ${taglib_lib}/${taglib_file_name})
-set(taglib_lib_name, "taglib")
-add_library(
-        "taglib"
-        STATIC
-        IMPORTED)
-set_target_properties(
-        "taglib" PROPERTIES
-        IMPORTED_LOCATION
-        ${taglib_file_path}
-        INTERFACE_INCLUDE_DIRECTORIES
-        ${taglib_include})
+add_subdirectory(taglib)
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         taglib_jni.cpp
@@ -61,6 +56,28 @@ target_link_options(${CMAKE_PROJECT_NAME}
         # as a cursory glance indicates that it doesn't hardcode any page sizes.
         PRIVATE "-Wl,--exclude-libs,ALL,-z,max-page-size=16384")
 
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/toolkit"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/ape"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/asf"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/flac"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/it"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mp4"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mpc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mpeg"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mpeg/id3v1"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mpeg/id3v2"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/mpeg/id3v2/frames"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/ogg"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/riff"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/s3m"
+        "${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/xm"
+        "${CMAKE_CURRENT_BINARY_DIR}/taglib"
+)
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.
@@ -68,4 +85,4 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
         PRIVATE android
         PRIVATE log
-        PRIVATE taglib)
+        PRIVATE tag)

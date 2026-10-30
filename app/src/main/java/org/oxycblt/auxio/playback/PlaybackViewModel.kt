@@ -212,6 +212,10 @@ constructor(
         playWithImpl(song, with, ShuffleMode.IMPLICIT)
     }
 
+    fun play(song: Song) {
+        play(song, PlaySong.FromAll)
+    }
+
     fun playExplicit(song: Song, with: PlaySong) {
         playWithImpl(song, with, ShuffleMode.OFF)
     }

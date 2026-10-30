@@ -21,8 +21,8 @@
 
 #include <jni.h>
 #include <string_view>
-#include <taglib/tstring.h>
-#include <taglib/tstringlist.h>
+#include <taglib/toolkit/tstring.h>
+#include <taglib/toolkit/tstringlist.h>
 
 #include "JObjectRef.h"
 #include "JClassRef.h"

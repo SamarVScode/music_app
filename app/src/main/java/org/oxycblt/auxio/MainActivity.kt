@@ -36,6 +36,9 @@ import org.oxycblt.auxio.util.isNight
 import org.oxycblt.auxio.util.systemBarInsetsCompat
 import timber.log.Timber as L
 
+import androidx.activity.compose.setContent
+import org.oxycblt.auxio.ui.ios.AuxioApp
+
 /**
  * Auxio's single [AppCompatActivity].
  *
@@ -58,10 +61,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupTheme()
-        // Inflate the views after setting up the theme so that the theme attributes are applied.
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setupEdgeToEdge(binding.root)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContent { AuxioApp() }
         L.d("Activity created")
     }
 
@@ -96,17 +97,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             L.d("Applying normal theme [accent ${uiSettings.accent}]")
             setTheme(uiSettings.accent.theme)
-        }
-    }
-
-    private fun setupEdgeToEdge(contentView: View) {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        contentView.setOnApplyWindowInsetsListener { view, insets ->
-            // Automatically inset the view to the left/right, as component support for
-            // these insets are highly lacking.
-            val bars = insets.systemBarInsetsCompat
-            view.updatePadding(left = bars.left, right = bars.right)
-            insets
         }
     }
 

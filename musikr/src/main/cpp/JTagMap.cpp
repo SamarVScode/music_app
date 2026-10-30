@@ -17,6 +17,8 @@
  */
  
 #include "JTagMap.h"
+#include <memory>
+#include <utility>
 
 #include "JStringRef.h"
 

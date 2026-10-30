@@ -23,11 +23,13 @@
 #include <string_view>
 #include <optional>
 
-#include "taglib/id3v1tag.h"
-#include "taglib/id3v2tag.h"
-#include "taglib/xiphcomment.h"
-#include "taglib/mp4tag.h"
-#include "taglib/audioproperties.h"
+#include <taglib/mpeg/id3v1/id3v1tag.h>
+#include <taglib/mpeg/id3v2/id3v2tag.h>
+#include <taglib/ogg/xiphcomment.h>
+#include <taglib/mp4/mp4tag.h>
+#include <taglib/audioproperties.h>
+#include <taglib/toolkit/tlist.h>
+#include <taglib/flac/flacpicture.h>
 
 #include "JTagMap.h"
 

@@ -18,13 +18,15 @@
  
 #include "JMetadataBuilder.h"
 
+#include <string>
+
 #include "util.h"
 
-#include <taglib/mp4tag.h>
-#include <taglib/textidentificationframe.h>
-#include <taglib/attachedpictureframe.h>
+#include <taglib/mp4/mp4tag.h>
+#include <taglib/mpeg/id3v2/frames/textidentificationframe.h>
+#include <taglib/mpeg/id3v2/frames/attachedpictureframe.h>
 
-#include <taglib/tpropertymap.h>
+#include <taglib/toolkit/tpropertymap.h>
 
 #include "JObjectRef.h"
 #include "JClassRef.h"

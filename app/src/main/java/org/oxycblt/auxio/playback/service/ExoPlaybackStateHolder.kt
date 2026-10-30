@@ -27,13 +27,14 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer
 import androidx.media3.exoplayer.BaseRenderer
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioTrackBufferSizeProvider
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.MediaSource
@@ -531,14 +532,30 @@ class ExoPlaybackStateHolder(
         playbackManager.next()
     }
 
-    private fun broadcastAudioEffectAction(event: String) {
-        L.d("Broadcasting AudioEffect event: $event")
-        context.sendBroadcast(
+    override fun onAudioSessionIdChanged(audioSessionId: Int) {
+        super.onAudioSessionIdChanged(audioSessionId)
+        L.d("Audio session ID changed to $audioSessionId")
+        if (audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+            broadcastAudioEffectAction(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION, audioSessionId)
+            openAudioEffectSession = true
+        }
+    }
+
+    private fun broadcastAudioEffectAction(event: String, targetSessionId: Int = audioSessionId) {
+        L.d("Broadcasting AudioEffect event: $event for session: $targetSessionId")
+        val intent =
             Intent(event)
                 .putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                .putExtra(AudioEffect.EXTRA_AUDIO_SESSION, audioSessionId)
+                .putExtra(AudioEffect.EXTRA_AUDIO_SESSION, targetSessionId)
                 .putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-        )
+        context.sendBroadcast(intent)
+
+        // Explicitly broadcast to Poweramp Equalizer to ensure delivery on Android 14+
+        val powerampIntent =
+            Intent(intent)
+                .setPackage("com.maxmpz.equalizer")
+                .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+        context.sendBroadcast(powerampIntent)
     }
 
     // --- MUSICREPOSITORY METHODS ---
@@ -658,35 +675,59 @@ class ExoPlaybackStateHolder(
         fun create(): ExoPlaybackStateHolder {
             // Since Auxio is a music player, only specify an audio renderer to save
             // battery/apk size/cache size]
-            val audioRenderer = RenderersFactory { handler, _, audioListener, _, _ ->
-                arrayOf<BaseRenderer>(
-                    FfmpegAudioRenderer(handler, audioListener, replayGainProcessor),
-                    MediaCodecAudioRenderer(
+            val audioRenderer = object : androidx.media3.exoplayer.DefaultRenderersFactory(context) {
+                override fun buildAudioRenderers(
+                    context: Context,
+                    extensionRendererMode: Int,
+                    mediaCodecSelector: MediaCodecSelector,
+                    enableDecoderFallback: Boolean,
+                    audioSink: androidx.media3.exoplayer.audio.AudioSink,
+                    eventHandler: android.os.Handler,
+                    eventListener: androidx.media3.exoplayer.audio.AudioRendererEventListener,
+                    out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
+                ) {
+                    val bufferSizeProvider = DefaultAudioTrackBufferSizeProvider.Builder()
+                        .setMinPcmBufferDurationUs(250_000)  // 250ms min (absorbs BT ACL retries)
+                        .setMaxPcmBufferDurationUs(750_000)  // 750ms max
+                        .setPcmBufferMultiplicationFactor(4) // 4x hardware minBufferSize
+                        .build()
+                    val customAudioSink = DefaultAudioSink.Builder(context)
+                        .setAudioProcessors(arrayOf(replayGainProcessor))
+                        .setEnableFloatOutput(true)
+                        .setEnableAudioTrackPlaybackParams(false)
+                        .setAudioTrackBufferSizeProvider(bufferSizeProvider)
+                        .build()
+                    super.buildAudioRenderers(
                         context,
-                        MediaCodecSelector.DEFAULT,
-                        handler,
-                        audioListener,
-                        DefaultAudioSink.Builder(context)
-                            .setAudioProcessors(arrayOf(replayGainProcessor))
-                            .build(),
-                    ),
-                )
-            }
+                        extensionRendererMode,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        customAudioSink,
+                        eventHandler,
+                        eventListener,
+                        out
+                    )
+                }
+            }.setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 
             val exoPlayer =
                 ExoPlayer.Builder(context, audioRenderer)
                     .setMediaSourceFactory(mediaSourceFactory)
-                    // Enable automatic WakeLock support
                     .setWakeMode(C.WAKE_MODE_LOCAL)
                     .setAudioAttributes(
-                        // Signal that we are a music player.
                         AudioAttributes.Builder()
                             .setUsage(C.USAGE_MEDIA)
                             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                            .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
+                            .setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_NEVER)
                             .build(),
                         true,
                     )
-                    .build()
+                    .build().apply {
+                        volume = 1.0f
+                        playbackParameters = PlaybackParameters(1.0f, 1.0f)
+                        pauseAtEndOfMediaItems = false
+                    }
 
             return ExoPlaybackStateHolder(
                 context,

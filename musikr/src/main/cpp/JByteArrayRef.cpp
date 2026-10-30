@@ -17,6 +17,7 @@
  */
  
 #include "JByteArrayRef.h"
+#include <stdexcept>
 
 JByteArrayRef::JByteArrayRef(JNIEnv *env, TagLib::ByteVector &data) : env(env) {
     auto size = static_cast<jsize>(data.size());

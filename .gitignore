@@ -16,3 +16,5 @@ captures/
 .kotlin
 .aider*
 .env
+*.png
+*.txt

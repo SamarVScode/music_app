@@ -107,8 +107,8 @@ constructor(
      * @param song The [Format] of the currently playing track, or null if nothing is playing.
      */
     private fun applyReplayGain(song: Song?) {
-        if (song == null) {
-            L.d("Nothing playing, disabling adjustment")
+        if (song == null || playbackSettings.replayGainMode == ReplayGainMode.OFF) {
+            L.d("ReplayGain is off or no song, using pure unity gain 1.0f")
             volume = 1f
             return
         }
@@ -167,18 +167,23 @@ constructor(
 
     // --- AUDIO PROCESSOR IMPLEMENTATION ---
 
+    override fun isActive(): Boolean {
+        return playbackSettings.replayGainMode != ReplayGainMode.OFF && super.isActive()
+    }
+
     override fun onConfigure(
         inputAudioFormat: AudioProcessor.AudioFormat
     ): AudioProcessor.AudioFormat {
+        if (playbackSettings.replayGainMode == ReplayGainMode.OFF) {
+            return AudioProcessor.AudioFormat.NOT_SET
+        }
+
         if (inputAudioFormat.encoding == C.ENCODING_PCM_16BIT) {
-            // AudioProcessor is only provided 16-bit PCM audio data, so that's the only
-            // encoding we need to check for.
-            // TODO: Convert to a low-level audio processor capable of handling any kind of
-            //  PCM data, once ExoPlayer can support it.
             return inputAudioFormat
         }
 
-        throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
+        // High-res formats (24-bit / 32-bit float PCM) bypass ReplayGain processing cleanly
+        return AudioProcessor.AudioFormat.NOT_SET
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {

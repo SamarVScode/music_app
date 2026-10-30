@@ -21,8 +21,7 @@
 
 #include <jni.h>
 #include <memory>
-#include <taglib/tstring.h>
-#include "JObjectRef.h"
+#include <taglib/toolkit/tstring.h>
 
 class JObjectRef {
 public:
